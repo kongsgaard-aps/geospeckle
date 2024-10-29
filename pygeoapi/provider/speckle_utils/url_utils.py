@@ -97,8 +97,8 @@ def get_set_url_parameters(self: "SpeckleProvider"):
         if crsauthid:
             self.lat = str(self.lat) + " (not applied)"
             self.lon = str(self.lon) + " (not applied)"
-            self.north_degrees = str(self.north_degrees) + " (not applied)"
+            self.north_degrees = 0 # default to 0: rotation ignored when AuthId is used #str(self.north_degrees) + " (not applied)"
 
         # if CRS parameter present, create and assign CRS:
         if len(self.crs_authid)>3:
-            create_crs_from_authid(self)
+            create_crs_from_authid(self, self.crs_authid)
