@@ -55,7 +55,15 @@ def reproject_bulk(self, all_coords: List[List[List[float]]], all_coord_counts: 
                     if geometry["type"] == "MultiPoint":
                         poly_part.extend([local_flat_coords[ind] for ind in range_coords_indices])
                     else:
-                        poly_part.append([local_flat_coords[ind] for ind in range_coords_indices])
+                        new_list = []
+                        for ind in range_coords_indices:
+                            try:
+                                new_list.append(local_flat_coords[ind])
+                            except Exception as e: # corrupted geometry, ignore altogether 
+                                new_list = []
+                                break
+                        if len(new_list)>0:
+                            poly_part.append(new_list)
 
                     start_index += part_count
                 
@@ -89,7 +97,9 @@ def reproject_2d_coords_list(self, coords_in: List[List[float]]) -> List[List[fl
     
     all_x = [x[0] for x in transformed]
     all_y = [x[1] for x in transformed]
+    all_z = [x[2] for x in transformed]
     self.extent = [min(all_x), min(all_y), max(all_x), max(all_y)]
+    self.extent3d = [min(all_x), min(all_y), min(all_z), max(all_x), max(all_y), max(all_z)]
     return transformed
 
 def offset_rotate(self, coords_in: List[list]) -> List[List[float]]:
