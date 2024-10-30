@@ -354,6 +354,17 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
     obj_display = obj_display_tc.current
 
     try:
+        # first, choose if get color from the parent obj or displayValue
+        if hasattr(obj_display, 'displayStyle') or hasattr(obj_display, '@displayStyle') or hasattr(obj_display, 'renderMaterial') or hasattr(obj_display, '@renderMaterial'):
+            obj_display = obj_display_tc.current
+        else:
+            # this option will be not very reliable: 
+            # there could be different colors for diff displayValues in the list
+            if hasattr(obj_display, 'displayValue') and isinstance(obj_display['displayValue'], list) and len(obj_display['displayValue'])>0:
+                obj_display = obj_display['displayValue'][0]
+            elif hasattr(obj_display, '@displayValue') and isinstance(obj_display['@displayValue'], list) and len(obj_display['@displayValue'])>0:
+                obj_display = obj_display['@displayValue'][0]
+
         # prioritize renderMaterials for Meshes & Brep
         if isinstance(obj_display, Mesh) or isinstance(obj_display, Brep): 
             # print(obj_display.get_member_names())
