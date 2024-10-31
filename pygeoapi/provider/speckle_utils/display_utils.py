@@ -107,6 +107,9 @@ def isDisplayable(obj: "Base") -> bool:
     if is_primitive(obj):
         return True
     
+    if obj.speckle_type.endswith("Feature"):
+        return True
+    
     displayValue = None
     if hasattr(obj, 'displayValue'):
         displayValue = getattr(obj, 'displayValue')
@@ -306,7 +309,7 @@ def set_default_color(context_list: List["TraversalContext"]) -> None:
 
     for item in context_list:
         # for GIS-commits, use default blue color
-        if isinstance(item.current, VectorLayer):
+        if isinstance(item.current, VectorLayer) or (item.parent is not None and isinstance(item.parent.current, VectorLayer)):
             DEFAULT_COLOR = (255 << 24) + (10 << 16) + (132 << 8) + 255
             break
 
