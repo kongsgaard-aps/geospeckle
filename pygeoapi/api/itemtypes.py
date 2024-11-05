@@ -309,7 +309,8 @@ def get_collection_items(
         # clear data if no URL params
         load_data = False
         for item in request.params:
-            if item == 'speckleUrl' and len(request.params[item])>40 and ('speckleUrl=' + request.params[item]) in provider_def['data']:
+            if item.lower() == 'speckleurl' and len(request.params[item])>40 and ('speckleurl=' + request.params[item]) in provider_def['data'].lower():
+                print(request.params)
                 load_data = True
                 break
         if load_data is False:
