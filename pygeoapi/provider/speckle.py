@@ -144,6 +144,7 @@ class SpeckleProvider(BaseProvider):
         self.limit_message = ""
 
         self.extent = [-180,-90,180,90]
+        self.extent3d = [-180,-90,0,180,90,1000]
         self.material_color_proxies = {}
 
 
@@ -420,6 +421,7 @@ class SpeckleProvider(BaseProvider):
         speckle_data["model_last_version_date"] = datetime.strptime(commit['createdAt'].replace("T", " ").replace("Z","").split(".")[0], '%Y-%m-%d %H:%M:%S')
         speckle_data["model_id"] = wrapper.model_id
         speckle_data["extent"] = self.extent
+        speckle_data["extent3d"] = self.extent3d
         speckle_data["limit_message"] = self.limit_message
 
         return speckle_data
@@ -437,7 +439,7 @@ class SpeckleProvider(BaseProvider):
         )
         from pygeoapi.provider.speckle_utils.crs_utils import get_set_crs_settings
         from pygeoapi.provider.speckle_utils.feature_utils import create_features
-        from pygeoapi.provider.speckle_utils.display_utils import set_default_color, get_material_color_proxies
+        from pygeoapi.provider.speckle_utils.display_utils import isDisplayable, set_default_color, get_material_color_proxies
 
         supported_classes = [GisFeature, GisPolygonElement, Mesh, Brep, Point, Line, Polyline, Curve, Arc, Circle, Ellipse, Polycurve]
         supported_types = [y().speckle_type for y in supported_classes]
@@ -472,7 +474,7 @@ class SpeckleProvider(BaseProvider):
                 and (isinstance(getattr(x, item, None), list) or ("grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base") )
             ],
         )
-        context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj)]
+        context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if isDisplayable(x.current)]
 
         get_set_crs_settings(self, commit_obj, context_list, data)
 

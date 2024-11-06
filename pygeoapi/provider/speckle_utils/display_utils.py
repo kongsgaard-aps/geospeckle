@@ -54,6 +54,7 @@ def separate_display_vals(displayValue: List) -> List[Tuple["Base"]]:
             count = 0
             all_count = len(item.faces)
 
+            sub_meshes = []
             for _ in item.faces:
                 if count < all_count:
                     faces = []
@@ -61,32 +62,66 @@ def separate_display_vals(displayValue: List) -> List[Tuple["Base"]]:
                     colors = []
 
                     vert_num = item.faces[count]
+                    if vert_num == 0:
+                        vert_num = 3
+                    elif vert_num == 1:
+                        vert_num = 4
 
                     faces.append(vert_num)
                     faces.extend([ x for x in list(range(vert_num))])
 
-                    for ind in range(vert_num):
-                        face_vert_index = count+1+ind
-                        vert_index = item.faces[face_vert_index]
+                    try:
+                        for ind in range(vert_num):
+                            face_vert_index = count+1+ind
+                            #print(face_vert_index)
+                            vert_index = item.faces[face_vert_index]
 
-                        new_vert = item.vertices[3*vert_index : 3*vert_index + 3]
-                        verts.extend(new_vert)
+                            new_vert = item.vertices[3*vert_index : 3*vert_index + 3]
+                            verts.extend(new_vert)
 
-                        if isinstance(item.colors, List) and len(item.colors) > vert_index:
-                            color = item.colors[vert_index]
-                            colors.append(color)
+                            if isinstance(item.colors, List) and len(item.colors) > vert_index:
+                                color = item.colors[vert_index]
+                                colors.append(color)
+                        
+                        count += vert_num+1
+                        if len(colors)>0:
+                            mesh = Mesh.create(faces= faces, vertices=verts, colors=colors)
+                        else:
+                            mesh = Mesh.create(faces= faces, vertices=verts)
+                        
+                        sub_meshes.append((mesh, item))
                     
-                    count += vert_num+1
-                    if len(colors)>0:
-                        mesh = Mesh.create(faces= faces, vertices=verts, colors=colors)
-                    else:
-                        mesh = Mesh.create(faces= faces, vertices=verts)
-                    display_objs.append((mesh, item))
+                    except IndexError: # corrupted mesh, drop altogether
+                        sub_meshes = []
+                        break
+                    
+            display_objs.extend(sub_meshes)
 
         elif item is not None:
             display_objs.append((item, item))
 
     return display_objs
+
+def isDisplayable(obj: "Base") -> bool:
+
+    if is_primitive(obj):
+        return True
+    
+    if obj.speckle_type.endswith("Feature"):
+        return True
+    
+    displayValue = None
+    if hasattr(obj, 'displayValue'):
+        displayValue = getattr(obj, 'displayValue')
+    elif hasattr(obj, '@displayValue'):
+        displayValue = getattr(obj, '@displayValue')
+    
+    # merge to sigle object, if List
+    if isinstance(displayValue, List):
+        return True
+    
+    return False
+
 
 def find_display_obj(obj) -> Tuple["Base", "Base"]:
     """Get displayable object."""
@@ -121,11 +156,12 @@ def find_display_obj(obj) -> Tuple["Base", "Base"]:
 def is_convertible(obj) -> bool:
     """Check if the object can be converted directly."""
     
-    from specklepy.objects.geometry import Base, Point, Line, Arc, Circle, Curve, Polycurve, Mesh, Brep
+    from specklepy.objects.geometry import Base, Point, Line, Polyline, Arc, Circle, Curve, Polycurve, Mesh, Brep
 
     if ( (isinstance(obj, Base) and obj.speckle_type.endswith("Feature")) or
     isinstance(obj, Point) or
     isinstance(obj, Line) or
+    isinstance(obj, Polyline) or
     isinstance(obj, Arc) or
     isinstance(obj, Circle) or
     isinstance(obj, Curve) or
@@ -133,6 +169,23 @@ def is_convertible(obj) -> bool:
     isinstance(obj, Mesh) or
     isinstance(obj, Brep)):
         return True
+    return False
+
+def is_primitive(obj) -> bool:
+    """Check if the object can be converted directly."""
+    
+    from specklepy.objects.geometry import Polyline, Point, Line, Arc, Circle, Curve, Polycurve, Mesh, Brep
+
+    if (
+        isinstance(obj, Point) or
+        isinstance(obj, Line) or
+        isinstance(obj, Polyline) or
+        isinstance(obj, Arc) or
+        isinstance(obj, Circle) or
+        isinstance(obj, Curve) or
+        isinstance(obj, Mesh) 
+        ):
+            return True
     return False
 
 def get_single_display_object(displayValForColor: List) -> "Base":
@@ -256,7 +309,7 @@ def set_default_color(context_list: List["TraversalContext"]) -> None:
 
     for item in context_list:
         # for GIS-commits, use default blue color
-        if isinstance(item.current, VectorLayer):
+        if isinstance(item.current, VectorLayer) or (item.parent is not None and isinstance(item.parent.current, VectorLayer)):
             DEFAULT_COLOR = (255 << 24) + (10 << 16) + (132 << 8) + 255
             break
 
@@ -304,6 +357,17 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
     obj_display = obj_display_tc.current
 
     try:
+        # first, choose if get color from the parent obj or displayValue
+        if hasattr(obj_display, 'displayStyle') or hasattr(obj_display, '@displayStyle') or hasattr(obj_display, 'renderMaterial') or hasattr(obj_display, '@renderMaterial'):
+            obj_display = obj_display_tc.current
+        else:
+            # this option will be not very reliable: 
+            # there could be different colors for diff displayValues in the list
+            if hasattr(obj_display, 'displayValue') and isinstance(obj_display['displayValue'], list) and len(obj_display['displayValue'])>0:
+                obj_display = obj_display['displayValue'][0]
+            elif hasattr(obj_display, '@displayValue') and isinstance(obj_display['@displayValue'], list) and len(obj_display['@displayValue'])>0:
+                obj_display = obj_display['@displayValue'][0]
+
         # prioritize renderMaterials for Meshes & Brep
         if isinstance(obj_display, Mesh) or isinstance(obj_display, Brep): 
             # print(obj_display.get_member_names())

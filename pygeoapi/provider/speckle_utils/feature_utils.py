@@ -79,7 +79,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                     
                     obj_get_color_tc = TraversalContext(obj_get_color, "", item)
 
-                    assign_display_properties(self, feature, f_base,  obj_get_color_tc)
+                    assign_display_properties(self, feature, f_base, obj_get_color_tc)
                     feature["max_height"] = max([c[2] for c in coords])
                     feature["bbox"] = get_feature_bbox(coords)
                     data["features"].append(feature)
