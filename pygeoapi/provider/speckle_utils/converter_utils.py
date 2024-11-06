@@ -296,8 +296,24 @@ def assign_geometry(self: "SpeckleProvider", feature: Dict, f_base) -> Tuple[ Li
             geometry["type"] = "MultiPolygon"
             coord_counts.append(None)
 
-            for geom in f_base["geometry"]:
-                convert_polygon(geom, coords, coord_counts)
+            polygon_3d = False
+
+            for mesh in f_base["displayValue"]:
+                for i, coord in enumerate(mesh.vertices):
+                    if i>60:
+                        break
+                    if i%3 !=0:
+                        continue
+                    elif coord != 0:
+                        polygon_3d = True
+                        break
+
+            if polygon_3d is False:
+                for geom in f_base["geometry"]:
+                    convert_polygon(geom, coords, coord_counts)
+            else:
+                for geom in f_base["displayValue"]:
+                    convert_mesh_or_brep(geom, coords, coord_counts)
     
 
     elif self.requested_data_type == "points":
