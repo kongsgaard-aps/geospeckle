@@ -334,22 +334,6 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
 
     from specklepy.objects.geometry import Mesh, Brep
     
-    for tc in getAllParents(obj_display_tc):
-        
-        try:
-            color = self.material_color_proxies[tc.current.applicationId]
-            props['color'] = color
-            return
-        except:
-            pass
-
-    try:
-        color = self.material_color_proxies[obj_display.applicationId]
-        props['color'] = color
-        return
-    except:
-        pass
-
     # initialize Speckle Blue color
     color = DEFAULT_COLOR
     opacity = None
@@ -413,6 +397,24 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
             a = a_test
     # hex_color = '#%02x%02x%02x' % (r, g, b)
     props['color'] = f'rgba({r},{g},{b},{a})'
+
+    # if still not found, check proxies: 
+    if color == DEFAULT_COLOR:
+        for tc in getAllParents(obj_display_tc):
+            
+            try:
+                color = self.material_color_proxies[tc.current.applicationId]
+                props['color'] = color
+                return
+            except:
+                pass
+
+        try:
+            color = self.material_color_proxies[obj_display.applicationId]
+            props['color'] = color
+            return
+        except:
+            pass
 
 def get_r_g_b(rgb: int) -> Tuple[int, int, int]:
     """Get R, G, B values from int."""
