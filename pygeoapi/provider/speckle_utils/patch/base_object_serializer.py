@@ -31,25 +31,7 @@ def safe_json_loads(obj: str, obj_id=None) -> Any:
             f" int error - falling back to json. \nError: {err}",
             SpeckleWarning,
         )
-        try:
-            return ujson.loads(obj[:-1])
-        except:
-            try:
-                return ujson.loads(obj[:-2])
-            except:
-                try:
-                    return ujson.loads(obj[:-3])
-                except:
-                    try:
-                        return ujson.loads(obj[:-4])
-                    except:
-                        try:
-                            return ujson.loads(obj[:-5])
-                        except:
-                            try:
-                                return ujson.loads(obj[:-6])
-                            except:
-                                return json.loads(obj)
+        return json.loads(obj)
 
 
 class BaseObjectSerializer:
@@ -342,7 +324,6 @@ class BaseObjectSerializer:
         # make sure an obj was passed and create dict if string was somehow passed
         if not obj:
             return
-
         if isinstance(obj, str):
             obj = safe_json_loads(obj)
 

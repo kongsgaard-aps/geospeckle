@@ -85,6 +85,12 @@ class ServerTransport(AbstractTransport):
         self.url = url
 
         self.session = requests.Session()
+        
+        self.session.headers.update(
+            {
+                "Accept": "application/json",
+            }
+        )
 
         if self.account.token is not None:
             self._batch_sender = BatchSender(
@@ -163,34 +169,13 @@ class ServerTransport(AbstractTransport):
             endpoint, data={"objects": json.dumps(new_children_ids)}, stream=True
         )
         r.encoding = "utf-8"
-        lines = r.iter_lines(decode_unicode=True, delimiter="},{")
+        lines = r.iter_lines(decode_unicode=True)
 
         # iter through returned objects saving them as we go
         target_transport.begin_write()
-        all_lines = [line for _,line in enumerate(lines)]
-
-        # fix wrongly split lines 
-        for i, line in enumerate(all_lines):
-            if line and i!= 0 and (len(line)<=10 or'"id": "' not in line[:10]):
-                # find the last line with ID
-                matching_index = -1
-                for k, id_line in enumerate(all_lines):
-                    if k<i and '"id": "' in id_line:
-                        matching_index = k
-                    if k==i:
-                        break
-                if matching_index != -1:
-                    all_lines[matching_index] += "},{" + line
-                    all_lines[i] = ""
-
-        for i, line in enumerate(all_lines):
-            if line and len(line)>10 and '"id": "' in line[:10]:
-                hash = line.split('"id": "')[1].split('"')[0]
-                obj = "{" + line + "}"
-                if i==0:
-                    obj = obj[2:]
-                elif i==len(all_lines)-1:
-                    obj = obj[:-2]
+        for line in lines:
+            if line:
+                hash, obj = line.split("\t")
                 target_transport.save_object(hash, obj)
 
         target_transport.save_object(id, root_obj_serialized)
