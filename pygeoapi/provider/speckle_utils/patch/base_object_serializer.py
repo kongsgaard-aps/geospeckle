@@ -32,12 +32,24 @@ def safe_json_loads(obj: str, obj_id=None) -> Any:
             SpeckleWarning,
         )
         try:
-            return ujson.loads(obj[:-2])
+            return ujson.loads(obj[:-1])
         except:
             try:
                 return ujson.loads(obj[:-2])
             except:
-                return json.loads(obj)
+                try:
+                    return ujson.loads(obj[:-3])
+                except:
+                    try:
+                        return ujson.loads(obj[:-4])
+                    except:
+                        try:
+                            return ujson.loads(obj[:-5])
+                        except:
+                            try:
+                                return ujson.loads(obj[:-6])
+                            except:
+                                return json.loads(obj)
 
 
 class BaseObjectSerializer:
