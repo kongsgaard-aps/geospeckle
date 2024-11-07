@@ -51,7 +51,7 @@ def get_set_crs_settings(self: "SpeckleProvider", commit_obj: "Base", context_li
 
     root_objects = []
     try:
-        root_objects = [commit_obj] + commit_obj.elements
+        root_objects = [commit_obj] + commit_obj.elements + [c.current for c in context_list]
     except AttributeError as ex:
         pass # old commit structure
 

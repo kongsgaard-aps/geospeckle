@@ -474,7 +474,9 @@ class SpeckleProvider(BaseProvider):
                 and (isinstance(getattr(x, item, None), list) or ("grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base") )
             ],
         )
-        context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if isDisplayable(x.current)]
+
+        # for the context list, save the displayable objects and Layers (for getting CRS for now)
+        context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if isDisplayable(x.current) or x.current.speckle_type.endswith("VectorLayer")]
 
         get_set_crs_settings(self, commit_obj, context_list, data)
 
