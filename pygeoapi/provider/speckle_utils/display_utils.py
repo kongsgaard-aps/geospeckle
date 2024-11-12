@@ -347,8 +347,14 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
         else:
             # this option will be not very reliable: 
             # there could be different colors for diff displayValues in the list
-            if hasattr(obj_display, 'displayValue') and isinstance(obj_display['displayValue'], list) and len(obj_display['displayValue'])>0:
-                obj_display = obj_display['displayValue'][0]
+            if hasattr(obj_display, 'displayValue'):
+                try:
+                    displayVal = obj_display['displayValue']
+                except:
+                    displayVal = obj_display.displayValue
+                if isinstance(displayVal, list) and len(displayVal)>0:
+                    obj_display = displayVal[0]
+
             elif hasattr(obj_display, '@displayValue') and isinstance(obj_display['@displayValue'], list) and len(obj_display['@displayValue'])>0:
                 obj_display = obj_display['@displayValue'][0]
 
@@ -356,8 +362,12 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
         if isinstance(obj_display, Mesh) or isinstance(obj_display, Brep): 
             # print(obj_display.get_member_names())
             if hasattr(obj_display, 'renderMaterial'):
-                color = obj_display['renderMaterial']['diffuse']
-                opacity = obj_display['renderMaterial']['opacity']
+                try:
+                    renderMaterial = obj_display['renderMaterial']
+                except:
+                    renderMaterial = obj_display.renderMaterial
+                color = renderMaterial['diffuse']
+                opacity = renderMaterial['opacity']
             elif hasattr(obj_display, '@renderMaterial'):
                 color = obj_display['@renderMaterial']['diffuse']
                 opacity = obj_display['@renderMaterial']['opacity']
