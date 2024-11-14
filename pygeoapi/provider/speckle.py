@@ -471,7 +471,7 @@ class SpeckleProvider(BaseProvider):
                 item
                 for item in x.get_member_names()
                 if (x.speckle_type.split(":")[-1] not in supported_types or isinstance(x, VectorLayer))
-                and (isinstance(getattr(x, item, None), list) or ("grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base") )
+                and (isinstance(getattr(x, item, None), list) or (self.sourceApp is not None and "grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base") )
             ],
         )
 
