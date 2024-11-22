@@ -310,7 +310,7 @@ def set_default_color(context_list: List["TraversalContext"]) -> None:
     for item in context_list:
         # for GIS-commits, use default blue color
         if isinstance(item.current, VectorLayer) or (item.parent is not None and isinstance(item.parent.current, VectorLayer)):
-            DEFAULT_COLOR = (255 << 24) + (10 << 16) + (132 << 8) + 255
+            DEFAULT_COLOR = (255 << 24) + (10 << 16) + (132 << 8) + 255 # speckle blue, speckle_blue
             break
 
 def getAllParents(tc: "TraversalContext"):
