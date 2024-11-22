@@ -222,7 +222,8 @@ def set_actions(self: "SpeckleProvider", client: "SpeckleClient", action: str = 
     try:
         full_dict = {**self.url_params, **self.times}
         full_dict["GIS commit"] = self.commit_gis
-        full_dict["project"] = f"{self.project_id}"
+        full_dict["project_id"] = f"{self.project_id}"
+        full_dict["sourceHostApp"] = self.sourceApp
         full_dict["model"] = f"{self.project_name}, {self.model_name}"
         full_dict["time_TOTAL"] = sum([x[1] for x in self.times.items()])
         full_dict["model_url"] = self.speckle_url
