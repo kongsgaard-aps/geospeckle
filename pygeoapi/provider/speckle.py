@@ -120,6 +120,7 @@ class SpeckleProvider(BaseProvider):
 
         self.speckle_data = None
         self.project_name = ""
+        self.project_id = ""
         self.model_name = ""
         self.sourceApp = ""
 
@@ -382,6 +383,7 @@ class SpeckleProvider(BaseProvider):
             comments = {}
 
         # set the Model name
+        self.project_id = wrapper.stream_id
         self.project_name = stream['name']
         self.model_name = branch['name']
 
@@ -416,6 +418,7 @@ class SpeckleProvider(BaseProvider):
         speckle_data["features"].extend(speckle_data["comments"])
         speckle_data["comments"] = []
 
+        speckle_data["project_id"] = wrapper.stream_id
         speckle_data["project"] = stream['name']
         speckle_data["model"] = branch['name']
         speckle_data["model_last_version_date"] = datetime.strptime(commit['createdAt'].replace("T", " ").replace("Z","").split(".")[0], '%Y-%m-%d %H:%M:%S')
