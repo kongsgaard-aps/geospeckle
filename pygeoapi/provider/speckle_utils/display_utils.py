@@ -373,14 +373,30 @@ def assign_color(self: "SpeckleProvider", obj_display_tc: "TraversalContext", pr
                 opacity = obj_display['@renderMaterial']['opacity']
 
             elif isinstance(obj_display, Mesh) and isinstance(obj_display.colors, List) and len(obj_display.colors)>1:
-                sameColors = True
-                color1 = obj_display.colors[0]
+                colors_number = 0
+                all_colors = []
                 for c in obj_display.colors:
-                    if c != color1:
-                        sameColors = False
-                        break
-                if sameColors is True:
-                    color = color1
+                    if c not in all_colors:
+                        colors_number += 1
+                    all_colors.append(c)
+
+                if colors_number>1:
+                    all_a = 0
+                    all_r = 0
+                    all_g = 0
+                    all_b = 0
+                    for col in all_colors:
+                        a, r, g, b = get_r_g_b(col)
+                        all_a += a
+                        all_r += r
+                        all_g += g
+                        all_b += b
+                    color = ( 
+                        (int(all_a/len(obj_display.colors)) << 24) + (int(all_r/len(obj_display.colors)) << 16) 
+                        + (int(all_g/len(obj_display.colors)) << 8) + int(all_b/len(obj_display.colors))
+                    )
+                else: 
+                    color = obj_display.colors[0]
             
             elif hasattr(obj_display, 'displayStyle'):
                 color = obj_display['displayStyle']['color']

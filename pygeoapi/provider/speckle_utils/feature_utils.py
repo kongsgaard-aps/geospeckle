@@ -86,7 +86,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                     feature_count += 1
                 
             else:
-                list_of_display_obj = find_list_of_display_obj(f_base)
+                list_of_display_obj = find_list_of_display_obj(f_base) # tuple
                 
                 for k, vals in enumerate(list_of_display_obj):
                     obj_display, obj_get_color = vals
@@ -120,7 +120,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                         all_coords.extend(coords)
                         all_coord_counts.append(coord_counts)
 
-                        obj_get_color_tc = TraversalContext(obj_get_color, "", item)
+                        obj_get_color_tc = TraversalContext(obj_display, "", item)
 
                         assign_display_properties(self, feature_new, f_base,  obj_get_color_tc)
                         feature_new["max_height"] = max([c[2] for c in coords])
