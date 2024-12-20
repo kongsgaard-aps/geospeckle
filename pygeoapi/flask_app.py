@@ -182,10 +182,11 @@ def handle_client(url_route: str):
     else:
         ip_address = request.environ['HTTP_X_FORWARDED_FOR']
 
-    print(f"_______________________{datetime.now().astimezone(timezone.utc)} _URL access")
-    print(f"_Agent {url_route}: {agent}")
-    print(f"_IP Address: {ip_address}")
-    print(f"_Request URL: {request.url}")
+    if "(https://www.checklyhq.com)" not in agent:
+        print(f"_______________________{datetime.now().astimezone(timezone.utc)} _URL access")
+        print(f"_Agent {url_route}: {agent}")
+        print(f"_IP Address: {ip_address}")
+        print(f"_Request URL: {request.url}")
     
     request.url += f"&userAgent={agent}"
 
