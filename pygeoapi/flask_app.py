@@ -182,7 +182,7 @@ def handle_client(url_route: str):
     else:
         ip_address = request.environ['HTTP_X_FORWARDED_FOR']
 
-    if "(https://www.checklyhq.com)" not in agent:
+    if agent is not None and "(https://www.checklyhq.com)" not in agent:
         print(f"_______________________{datetime.now().astimezone(timezone.utc)} _URL access")
         print(f"_Agent {url_route}: {agent}")
         print(f"_IP Address: {ip_address}")
