@@ -33,10 +33,6 @@ jobs:
       - name: Build Image
         run: docker build -t ghcr.io/${{ env.registry }}/${{ env.name }}:${{ github.run_number }} .
 
-      - name: Tag Image
-        if: github.event_name != 'pull_request'
-        run: docker tag ghcr.io/${{ env.registry }}/${{ env.name }}:${{ github.run_number }}
-
       - name: Push Image
         if: github.event_name != 'pull_request'
         run: docker push --all-tags ghcr.io/${{ env.registry }}/${{ env.name }}
