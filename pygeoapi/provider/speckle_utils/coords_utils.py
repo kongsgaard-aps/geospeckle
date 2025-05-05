@@ -5,7 +5,7 @@ from typing import List
 from pygeoapi.provider.speckle_utils.legal import COUNTRY_CODES, STATES, POSTCODES
 
 
-def reproject_bulk(self, all_coords: List[List[List[float]]], all_coord_counts: List[List[None| List[int]]], geometries) -> None:
+def reproject_bulk(self, all_coords: List[List[List[float]]], all_coord_counts: List[List[None| List[int]]], features) -> None:
     """Reproject coordinates and assign to corresponding geometries."""
 
     from datetime import datetime
@@ -31,49 +31,37 @@ def reproject_bulk(self, all_coords: List[List[List[float]]], all_coord_counts: 
     
     feat_coord_groups = [flat_coords[sum(feat_coord_group_flat_counts[:i]):sum(feat_coord_group_flat_counts[:i])+x] for i, x in enumerate(feat_coord_group_flat_counts)]
 
-    for i, geometry in enumerate(geometries):
+    for i, feature in enumerate(features):
+        geometry = feature["geometry"]
+        if self.requested_data_type == "objecttype":
+            # import pydevd_pycharm
+            # pydevd_pycharm.settrace('192.168.68.54', port=3245, stdoutToServer=True, stderrToServer=True)
+            properties = feature.get("properties", {}).get("properties", {})
+            if isinstance(properties,dict) and properties.get("ObjectType"):
+                object_type = properties.get("ObjectType")
+                if object_type.get("geometryType") == "Point":
+                    x = feature["bbox"][0] + (feature["bbox"][0] - feature["bbox"][2]) / 2
+                    y = feature["bbox"][1] + (feature["bbox"][1] - feature["bbox"][3]) / 2
+                    feature["geometry"]["type"] = "Point"
+                    feature["geometry"]["coordinates"] = [x, y]
+                    continue
+                if object_type.get("geometryType") == "Polygon":
+                    geometry["coordinates"] = []
+                    assign_multipart_geometry(geometry, i, feat_coord_groups, feat_coord_group_counts,
+                                              feat_coord_group_counts_per_part, project_2d=True)
+                    continue
+
         geometry["coordinates"] = []
         if feat_coord_group_is_multi[i] is False:
-            
+
             if geometry["type"] == "Point":
                 geometry["coordinates"].extend(feat_coord_groups[i][0])
             else:
                 geometry["coordinates"].extend(feat_coord_groups[i])
         else:
-            polygon_parts = []
-            local_coords_count: List[List[int]] = feat_coord_group_counts[i]
-            local_coords_count_flat: List[int] = feat_coord_group_counts_per_part[i]
-            local_flat_coords: List[int] = feat_coord_groups[i]
+            assign_multipart_geometry(geometry, i, feat_coord_groups, feat_coord_group_counts,
+                                      feat_coord_group_counts_per_part)
 
-            for c, poly_part_count_lists in enumerate(local_coords_count):
-                poly_part = []
-                start_index = sum(local_coords_count_flat[:c]) if c!=0 else 0 # all used coords in all parts
-
-                for part_count in poly_part_count_lists:
-                    range_coords_indices = range(start_index, start_index + part_count)
-                    
-                    if geometry["type"] == "MultiPoint":
-                        poly_part.extend([local_flat_coords[ind] for ind in range_coords_indices])
-                    else:
-                        new_list = []
-                        for ind in range_coords_indices:
-                            try:
-                                new_list.append(local_flat_coords[ind])
-                            except Exception as e: # corrupted geometry, ignore altogether 
-                                new_list = []
-                                break
-                        if len(new_list)>0:
-                            poly_part.append(new_list)
-
-                    start_index += part_count
-                
-                if geometry["type"] in ["MultiPoint","MultiLineString"] :
-                    polygon_parts.extend(poly_part)
-                else:
-                    polygon_parts.append(poly_part)
-
-            geometry["coordinates"].extend(polygon_parts)
-    
     time3 = datetime.now()
 
     time_operation = (time3-time2).total_seconds()
@@ -147,3 +135,42 @@ def validate_coords(self, coords):
     if country_code in COUNTRY_CODES or state in STATES or postcode in POSTCODES:
         print(f"Validating project location: blocked LAT LON {coords[1]}, {coords[0]}, {country_code}, {state}, {postcode}")
         raise PermissionError("Review Speckle Terms and Conditions")
+
+
+def assign_multipart_geometry(geometry, i, feat_coord_groups, feat_coord_group_counts, feat_coord_group_counts_per_part, project_2d=False):
+    polygon_parts = []
+    local_coords_count: List[List[int]] = feat_coord_group_counts[i]
+    local_coords_count_flat: List[int] = feat_coord_group_counts_per_part[i]
+    local_flat_coords: List[int] = feat_coord_groups[i]
+
+    for c, poly_part_count_lists in enumerate(local_coords_count):
+        poly_part = []
+        start_index = sum(local_coords_count_flat[:c]) if c != 0 else 0  # all used coords in all parts
+
+        for part_count in poly_part_count_lists:
+            range_coords_indices = range(start_index, start_index + part_count)
+
+            if geometry["type"] == "MultiPoint":
+                poly_part.extend([local_flat_coords[ind] for ind in range_coords_indices])
+            else:
+                new_list = []
+                for ind in range_coords_indices:
+                    try:
+                        _coords = local_flat_coords[ind]
+                        if project_2d:
+                            _coords = _coords[:2]
+                        new_list.append(_coords)
+                    except Exception as e:  # corrupted geometry, ignore altogether
+                        new_list = []
+                        break
+                if len(new_list) > 0:
+                    poly_part.append(new_list)
+
+            start_index += part_count
+
+        if geometry["type"] in ["MultiPoint", "MultiLineString"]:
+            polygon_parts.extend(poly_part)
+        else:
+            polygon_parts.append(poly_part)
+
+    geometry["coordinates"].extend(polygon_parts)

@@ -5,7 +5,7 @@ Flask
 geopy==2.4.1
 jinja2
 jsonschema
-pydantic<2.0
+pydantic
 pygeofilter
 pygeoif
 pyproj
@@ -19,3 +19,4 @@ SQLAlchemy<2.0.0
 tinydb
 unicodecsv
 specklepy==2.19.6
+pydevd-pycharm~=243.25659.43

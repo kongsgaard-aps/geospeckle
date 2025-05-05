@@ -58,6 +58,7 @@ def assign_props(obj: "Base", props: Dict):
         if (
             prop_name
             in [
+                "@displayValue",
                 "displayValue",
                 "displayStyle",
                 "renderMaterial",
@@ -68,11 +69,10 @@ def assign_props(obj: "Base", props: Dict):
             pass
         else:
             value = getattr(obj, prop_name)
-            if (
-                isinstance(value, Base)
-                or isinstance(value, List)
-                or isinstance(value, Dict)
-            ):
+            if isinstance(value, Base):
+                props[prop_name] = {}
+                assign_props(value, props[prop_name])
+            elif isinstance(value, List) or isinstance(value, Dict):
                 props[prop_name] = str(value)
             else:
                 props[prop_name] = value

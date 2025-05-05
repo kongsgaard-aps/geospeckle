@@ -7,7 +7,7 @@ def get_set_url_parameters(self: "SpeckleProvider"):
     """Parse and save URL parameters."""
 
     from pygeoapi.provider.speckle_utils.crs_utils import create_crs_from_authid
-    
+
     crsauthid = False
     
     if (isinstance(self.data, str)):
@@ -29,7 +29,7 @@ def get_set_url_parameters(self: "SpeckleProvider"):
             elif "datatype=" in item:
                 try:
                     requested_data_type = item.split("datatype=")[1]
-                    if requested_data_type in ["points", "lines", "polygons", "projectcomments"]:
+                    if requested_data_type in ["points", "lines", "polygons", "projectcomments", "objecttype"]:
                         self.requested_data_type = requested_data_type
                         self.url_params["url_data_type"] = requested_data_type
                 except:

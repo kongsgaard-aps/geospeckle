@@ -16,10 +16,10 @@ def get_stream_branch(self: "SpeckleProvider", client: "SpeckleClient", wrapper:
     )
 
     if isinstance(stream, Exception):
-        raise SpeckleException(stream.message+ ", "+ self.speckle_url)
+        raise SpeckleException(stream.message + ", "+ self.speckle_url)
 
-    for br in stream['branches']['items']:
-        if br['id'] == wrapper.model_id:
+    for br in stream.branches.items:
+        if br.id == wrapper.model_id:
             branch = br
             break
     return stream, branch

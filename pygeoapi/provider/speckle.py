@@ -384,12 +384,12 @@ class SpeckleProvider(BaseProvider):
 
         # set the Model name
         self.project_id = wrapper.stream_id
-        self.project_name = stream['name']
-        self.model_name = branch['name']
+        self.project_name = stream.name
+        self.model_name = branch.name
 
-        commit = branch["commits"]["items"][0]
-        objId = commit["referencedObject"]
-        self.sourceApp = commit["sourceApplication"]
+        commit = branch.commits.items[0]
+        objId = commit.referencedObject
+        self.sourceApp = commit.sourceApplication
 
         transport = ServerTransport(client=client, account=client.account, stream_id=wrapper.stream_id)
         if transport == None:
@@ -405,12 +405,12 @@ class SpeckleProvider(BaseProvider):
 
         client.commit.received(
             wrapper.stream_id,
-            commit["id"],
+            commit.id,
             source_application="pygeoapi",
             message="Received commit in pygeoapi",
         )
 
-        print(f"_{datetime.now().astimezone(timezone.utc)} _Rendering model '{branch['name']}' of the project '{stream['name']}'")
+        print(f"_{datetime.now().astimezone(timezone.utc)} _Rendering model '{branch.name}' of the project '{stream.name}'")
         speckle_data = self.traverse_data(commit_obj, comments)
         
         set_actions(self, client, "GEO post-receive")
@@ -419,9 +419,9 @@ class SpeckleProvider(BaseProvider):
         speckle_data["comments"] = []
 
         speckle_data["project_id"] = wrapper.stream_id
-        speckle_data["project"] = stream['name']
-        speckle_data["model"] = branch['name']
-        speckle_data["model_last_version_date"] = datetime.strptime(commit['createdAt'].replace("T", " ").replace("Z","").split(".")[0], '%Y-%m-%d %H:%M:%S')
+        speckle_data["project"] = stream.name
+        speckle_data["model"] = branch.name
+        speckle_data["model_last_version_date"] = commit.createdAt
         speckle_data["model_id"] = wrapper.model_id
         speckle_data["extent"] = self.extent
         speckle_data["extent3d"] = self.extent3d

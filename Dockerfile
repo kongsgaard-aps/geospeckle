@@ -137,10 +137,12 @@ ADD . /pygeoapi
  # Install pygeoapi
 RUN python3 -m pip install --no-cache-dir -e . 
 
-RUN \ 
+RUN \
     # Set default config and entrypoint for Docker Image
-    cp /pygeoapi/docker/default.config.yml /pygeoapi/local.config.yml \
+    cp speckle-config.yml /pygeoapi/local.config.yml \
     && cp /pygeoapi/docker/entrypoint.sh /entrypoint.sh 
+
+RUN python3 pygeoapi/provider/speckle_utils/patch/patch_specklepy.py
 
 ENTRYPOINT ["/entrypoint.sh"]
 

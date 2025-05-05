@@ -63,6 +63,7 @@ def get_config(raw: bool = False, request: Request = None) -> dict:
     global CONFIG
 
     config_file = os.environ.get("PYGEOAPI_CONFIG")
+    print(f"PYGEOAPI_CONFIG: {config_file}")
     with open(config_file, encoding="utf8") as fh:
         if raw:
             config_yaml = yaml.safe_load(fh)
