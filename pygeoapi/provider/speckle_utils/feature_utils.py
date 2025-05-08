@@ -21,7 +21,6 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
 
     if self.requested_data_type != "projectcomments":
         for item in context_list:
-
             if item.current.speckle_type.endswith("Collection") or item.current.speckle_type.endswith(
                     "Layer") or item.current.speckle_type.endswith("Proxy"):
                 continue
@@ -83,8 +82,14 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                     assign_display_properties(self, feature, f_base, obj_get_color_tc)
                     feature["max_height"] = max([c[2] for c in coords])
                     feature["bbox"] = get_feature_bbox(coords)
-                    data["features"].append(feature)
-                    feature_count += 1
+
+                    if self.url_params.get("exclude_missing_cci") is True:
+                        if feature.get("properties", {}).get("properties", {}).get("CCI"):
+                            data["features"].append(feature)
+                            feature_count += 1
+                    else:
+                        data["features"].append(feature)
+                        feature_count += 1
 
             else:
                 list_of_display_obj = find_list_of_display_obj(f_base)  # tuple

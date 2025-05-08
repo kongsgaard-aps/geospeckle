@@ -88,6 +88,10 @@ def get_set_url_parameters(self: "SpeckleProvider"):
                     self.url_params["user_agent"] = agent
                 except:
                     ValueError(f"Invalid limit input, must be a positive integer: {item}")
+            elif "exclude_missing_cci" in item:
+                missing_cci = item.split("exclude_missing_cci=")[1]
+                self.url_params["exclude_missing_cci"] = True if missing_cci == 'true' else False
+
                 
 
         if self.speckle_url == "-":

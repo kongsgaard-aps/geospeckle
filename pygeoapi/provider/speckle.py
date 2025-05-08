@@ -39,9 +39,9 @@ import uuid
 from pygeoapi.provider.base import BaseProvider, ProviderItemNotFoundError
 from pygeoapi.util import crs_transform
 
-
 LOGGER = logging.getLogger(__name__)
 HOST_APP = "pygeoapi"
+
 
 class SpeckleProvider(BaseProvider):
     """Provider class for Speckle server data
@@ -81,7 +81,7 @@ class SpeckleProvider(BaseProvider):
             import specklepy
 
         except ModuleNotFoundError:
-            
+
             completed_process = run(
                 [
                     self.get_python_path(),
@@ -113,9 +113,8 @@ class SpeckleProvider(BaseProvider):
 
             patch_specklepy()
 
-        
         # assign global values
-        self.url: str = self.data # to store the value and check if self.data has changed
+        self.url: str = self.data  # to store the value and check if self.data has changed
         self.speckle_url = self.url.lower().split("speckleurl=")[-1].split("&")[0].split("@")[0].split("?")[0]
 
         self.speckle_data = None
@@ -128,14 +127,15 @@ class SpeckleProvider(BaseProvider):
         self.crs_dict = None
 
         self.commit_gis = False
-        self.url_params = {"url_data_type":"", "url_preserve_attributes":"", "url_crs_authid":"", "url_lat":"","url_lon":"","url_north_degrees":"","url_limit":""}
+        self.url_params = {"url_data_type": "", "url_preserve_attributes": "", "url_crs_authid": "", "url_lat": "",
+                           "url_lon": "", "url_north_degrees": "", "url_limit": "", "exclude_missing_cci": False}
         self.times = {}
         self.country_code = ""
 
-        self.requested_data_type: str = "polygons (default)" # points, lines, polygons, projectcomments
+        self.requested_data_type: str = "polygons (default)"  # points, lines, polygons, projectcomments
         self.preserve_attributes: str = "true (default)"
-        self.lat: float = 48.76755913928929 #51.52486388756923
-        self.lon: float = 11.408741923664028 #0.1621445437168942
+        self.lat: float = 48.76755913928929  # 51.52486388756923
+        self.lon: float = 11.408741923664028  # 0.1621445437168942
         self.north_degrees: float = 0
         self.crs_authid = ""
         self.limit = 10000
@@ -144,10 +144,9 @@ class SpeckleProvider(BaseProvider):
         self.missing_url = ""
         self.limit_message = ""
 
-        self.extent = [-180,-90,180,90]
-        self.extent3d = [-180,-90,0,180,90,1000]
+        self.extent = [-180, -90, 180, 90]
+        self.extent3d = [-180, -90, 0, 180, 90, 1000]
         self.material_color_proxies = {}
-
 
     def get_fields(self):
         """
@@ -160,7 +159,7 @@ class SpeckleProvider(BaseProvider):
 
         if self.speckle_data is None:
             self._load()
-            
+
         # check if the object was extracted
         if isinstance(self.speckle_data, Dict):
             if len(self.speckle_data["features"]) == 0:
@@ -183,9 +182,9 @@ class SpeckleProvider(BaseProvider):
         from pygeoapi.provider.speckle_utils.url_utils import get_set_url_parameters
 
         if self.data == "":
-            return 
+            return
 
-        get_set_url_parameters(self) # possible ValueError
+        get_set_url_parameters(self)  # possible ValueError
 
         # check if it's a new request (self.data was updated and doesn't match self.url)
         new_request = False
@@ -195,14 +194,14 @@ class SpeckleProvider(BaseProvider):
 
         # check if self.data was updated OR if features were not created yet
         if (
-            new_request is True
-            or self.speckle_data is None
-            or (
+                new_request is True
+                or self.speckle_data is None
+                or (
                 isinstance(self.speckle_data, dict)
                 and hasattr(self.speckle_data, "features")
                 and len(self.speckle_data["features"]) > 0
                 and not hasattr(self.speckle_data["features"][0], "properties")
-            )
+        )
         ):
             self.speckle_data = self.load_speckle_data()
             self.fields = self.get_fields()
@@ -241,18 +240,18 @@ class SpeckleProvider(BaseProvider):
 
     @crs_transform
     def query(
-        self,
-        offset=0,
-        limit=10,
-        resulttype="results",
-        bbox=[],
-        datetime_=None,
-        properties=[],
-        sortby=[],
-        select_properties=[],
-        skip_geometry=False,
-        q=None,
-        **kwargs,
+            self,
+            offset=0,
+            limit=10,
+            resulttype="results",
+            bbox=[],
+            datetime_=None,
+            properties=[],
+            sortby=[],
+            select_properties=[],
+            skip_geometry=False,
+            q=None,
+            **kwargs,
     ):
         """
         query the provider
@@ -276,7 +275,7 @@ class SpeckleProvider(BaseProvider):
             select_properties=select_properties,
         )
         if data is None:
-            return {"features":[], "comments":[], "extent": [-180,-90,180,90]}
+            return {"features": [], "comments": [], "extent": [-180, -90, 180, 90]}
 
         # add URL parameters
         data['speckle_url'] = self.speckle_url
@@ -289,15 +288,14 @@ class SpeckleProvider(BaseProvider):
         data['limit'] = self.limit
         data['missing_url'] = self.missing_url
 
-
         data["numberMatched"] = len(data["features"])
 
         if resulttype == "hits":
             data["features"] = []
             data["comments"] = []
-            data["extent"] = [-180,-90,180,90]
+            data["extent"] = [-180, -90, 180, 90]
         else:
-            data["features"] = data["features"][offset : offset + limit]
+            data["features"] = data["features"][offset: offset + limit]
             data["numberReturned"] = len(data["features"])
 
         return data
@@ -349,7 +347,8 @@ class SpeckleProvider(BaseProvider):
         """Receive and process Speckle data, return geojson."""
 
         from datetime import datetime, timezone
-        from pygeoapi.provider.speckle_utils.server_utils import get_stream_branch, get_client, get_comments, set_actions
+        from pygeoapi.provider.speckle_utils.server_utils import get_stream_branch, get_client, get_comments, \
+            set_actions
 
         from specklepy.objects.base import Base
         from specklepy.logging.exceptions import SpeckleException
@@ -360,14 +359,16 @@ class SpeckleProvider(BaseProvider):
         from specklepy.transports.server import ServerTransport
 
         set_host_app(HOST_APP, "0.0.99")
-        
+
         # get URL that will not trigget Client init
         url_proj: str = self.speckle_url.split("models")[0]
         wrapper: StreamWrapper = StreamWrapper(url_proj)
 
         # set actual branch
-        wrapper.model_id = self.speckle_url.split("models/")[1].split(" ")[0].split("/")[0].split("&")[0].split(",")[0].split(";")[0].split("@")[0]
-        
+        wrapper.model_id = \
+        self.speckle_url.split("models/")[1].split(" ")[0].split("/")[0].split("&")[0].split(",")[0].split(";")[
+            0].split("@")[0]
+
         # get stream and branch data
         client = get_client(wrapper, url_proj)
         stream, branch = get_stream_branch(self, client, wrapper)
@@ -410,9 +411,10 @@ class SpeckleProvider(BaseProvider):
             message="Received commit in pygeoapi",
         )
 
-        print(f"_{datetime.now().astimezone(timezone.utc)} _Rendering model '{branch.name}' of the project '{stream.name}'")
+        print(
+            f"_{datetime.now().astimezone(timezone.utc)} _Rendering model '{branch.name}' of the project '{stream.name}'")
         speckle_data = self.traverse_data(commit_obj, comments)
-        
+
         set_actions(self, client, "GEO post-receive")
 
         speckle_data["features"].extend(speckle_data["comments"])
@@ -442,14 +444,16 @@ class SpeckleProvider(BaseProvider):
         )
         from pygeoapi.provider.speckle_utils.crs_utils import get_set_crs_settings
         from pygeoapi.provider.speckle_utils.feature_utils import create_features
-        from pygeoapi.provider.speckle_utils.display_utils import isDisplayable, set_default_color, get_material_color_proxies
+        from pygeoapi.provider.speckle_utils.display_utils import isDisplayable, set_default_color, \
+            get_material_color_proxies
 
-        supported_classes = [GisFeature, GisPolygonElement, Mesh, Brep, Point, Line, Polyline, Curve, Arc, Circle, Ellipse, Polycurve]
+        supported_classes = [GisFeature, GisPolygonElement, Mesh, Brep, Point, Line, Polyline, Curve, Arc, Circle,
+                             Ellipse, Polycurve]
         supported_types = [y().speckle_type for y in supported_classes]
         supported_types.extend([
-            "Objects.Other.Revit.RevitInstance", 
-            "Objects.BuiltElements.Revit.RevitWall", 
-            "Objects.BuiltElements.Revit.RevitFloor", 
+            "Objects.Other.Revit.RevitInstance",
+            "Objects.BuiltElements.Revit.RevitWall",
+            "Objects.BuiltElements.Revit.RevitFloor",
             "Objects.BuiltElements.Revit.RevitStair",
             "Objects.BuiltElements.Revit.RevitColumn",
             "Objects.BuiltElements.Revit.RevitBeam",
@@ -461,7 +465,7 @@ class SpeckleProvider(BaseProvider):
             "type": "FeatureCollection",
             "features": [],
             "comments": [],
-            "extent": [-180,-90,180,90],
+            "extent": [-180, -90, 180, 90],
             "model_crs": "-",
         }
 
@@ -474,12 +478,14 @@ class SpeckleProvider(BaseProvider):
                 item
                 for item in x.get_member_names()
                 if (x.speckle_type.split(":")[-1] not in supported_types or isinstance(x, VectorLayer))
-                and (isinstance(getattr(x, item, None), list) or (self.sourceApp is not None and "grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base") )
+                   and (isinstance(getattr(x, item, None), list) or (
+                            self.sourceApp is not None and "grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base"))
             ],
         )
 
         # for the context list, save the displayable objects and Layers (for getting CRS for now)
-        context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if isDisplayable(x.current) or x.current.speckle_type.endswith("VectorLayer")]
+        context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if
+                        isDisplayable(x.current) or x.current.speckle_type.endswith("VectorLayer")]
 
         get_set_crs_settings(self, commit_obj, context_list, data)
 
@@ -489,25 +495,25 @@ class SpeckleProvider(BaseProvider):
         create_features(self, context_list, comments, data)
 
         # sort features by height 
-        
-        #if len(data['features']) == len(data['heights']):
-        #feat_array = np.array(data['features'])
-        #heights_array = np.array(data['heights'])
-        #inds = heights_array.argsort()
-        #sorted = feat_array[inds].tolist()
+
+        # if len(data['features']) == len(data['heights']):
+        # feat_array = np.array(data['features'])
+        # heights_array = np.array(data['heights'])
+        # inds = heights_array.argsort()
+        # sorted = feat_array[inds].tolist()
         time1 = datetime.now()
         sorted_list = sorted(data['features'], key=lambda d: d['max_height'])
         for i, _ in enumerate(sorted_list):
-            sorted_list[i]["properties"]["FID"] = i+1 
+            sorted_list[i]["properties"]["FID"] = i + 1
         data['features'] = sorted_list
         time2 = datetime.now()
-        
-        time_operation = (time2-time1).total_seconds()
+
+        time_operation = (time2 - time1).total_seconds()
         self.times["time_sort"] = time_operation
         # print(f"Sorting time: {time_operation}")
 
         return data
-    
+
     def get_python_path(self) -> str:
         """Get current Python executable path."""
 

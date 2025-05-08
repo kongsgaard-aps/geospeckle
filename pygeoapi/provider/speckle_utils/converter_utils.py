@@ -338,19 +338,19 @@ def assign_geometry(self: "SpeckleProvider", feature: Dict, f_base) -> Tuple[
         elif isinstance(f_base, Base) and f_base.speckle_type.endswith("PointElement"):
             raise TypeError(f"Deprecated speckleType {f_base.speckle_type}. Try loading more recent data.")
 
-    elif self.requested_data_type == "lines":
-        if (isinstance(f_base, Line) or
-                isinstance(f_base, Polyline) or
-                isinstance(f_base, Curve) or
-                isinstance(f_base, Arc) or
-                isinstance(f_base, Circle) or
-                isinstance(f_base, Polycurve)):
 
-            geometry["type"] = "LineString"
-            convert_icurve(f_base, coords, coord_counts)
+    elif (isinstance(f_base, Line) or
+          isinstance(f_base, Polyline) or
+          isinstance(f_base, Curve) or
+          isinstance(f_base, Arc) or
+          isinstance(f_base, Circle) or
+          isinstance(f_base, Polycurve)):
 
-        elif isinstance(f_base, Base) and f_base.speckle_type.endswith("LineElement"):
-            raise TypeError(f"Deprecated speckleType {f_base.speckle_type}. Try loading more recent data.")
+        geometry["type"] = "LineString"
+        convert_icurve(f_base, coords, coord_counts)
+
+    elif isinstance(f_base, Base) and f_base.speckle_type.endswith("LineElement"):
+        raise TypeError(f"Deprecated speckleType {f_base.speckle_type}. Try loading more recent data.")
 
     elif self.requested_data_type.startswith("polygons") or self.requested_data_type == "objecttype":
         if isinstance(f_base, Base) and f_base.speckle_type.endswith(".Hatch"):
