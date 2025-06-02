@@ -13,7 +13,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
 
     from specklepy.objects.graph_traversal.traversal import TraversalContext
 
-    # print(f"Creating features..")
+    print(f"Creating features..")
     time1 = datetime.now()
 
     all_props = []
@@ -40,7 +40,6 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
 
             feature: Dict = {
                 "type": "Feature",
-                # "bbox": [-180.0, -90.0, 180.0, 90.0], should not be in degrees
                 "geometry": {},
                 "displayProperties": {
                     "object_type": "geometry",
@@ -51,7 +50,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                     "speckle_type": speckle_type,
                 },
             }
-
+            print(f"Creating feature: {f_id}")
             # feature geometry, props and displayProps
             coords = []
             coord_counts = []
@@ -66,7 +65,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                 except Exception as e:
                     print(e)
                     pass
-
+                print(f"Coords of {f_id}: {len(coords)}")
                 if len(coords) != 0:
                     all_coords.extend(coords)
                     all_coord_counts.append(coord_counts)
@@ -83,6 +82,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                     feature["max_height"] = max([c[2] for c in coords])
                     feature["bbox"] = get_feature_bbox(coords)
 
+                    print(f"Adding feature: {feature}")
                     if self.url_params.get("exclude_missing_cci") is True:
                         if feature.get("properties", {}).get("properties", {}).get("CCI"):
                             data["features"].append(feature)
@@ -239,8 +239,7 @@ def create_features(self: "SpeckleProvider", context_list: List["TraversalContex
     """Create features from the list of traversal context."""
 
     from pygeoapi.provider.speckle_utils.coords_utils import reproject_bulk
-    # import pydevd_pycharm
-    # pydevd_pycharm.settrace('192.168.68.60', port=3245, stdoutToServer=True, stderrToServer=True)
+
     all_coords = []
     all_coord_counts = []
     context_list = [element for element in context_list if element.current.speckle_type != "Objects.Geometry.Mesh"]
@@ -251,8 +250,7 @@ def create_features(self: "SpeckleProvider", context_list: List["TraversalContex
 
 def convert_to_object_type(feature: dict):
     """Convert feature to object type."""
-    # import pydevd_pycharm
-    # pydevd_pycharm.settrace('192.168.68.60', port=3245, stdoutToServer=True, stderrToServer=True)
+
     if object_type := feature.get("properties", {}).get("properties", {}).get("ObjectType"):
         if object_type.get("geometryType") == "Point":
             x = feature["bbox"][0] + (feature["bbox"][0] - feature["bbox"][2]) / 2

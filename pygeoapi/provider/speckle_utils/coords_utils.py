@@ -33,9 +33,8 @@ def reproject_bulk(self, all_coords: List[List[List[float]]], all_coord_counts: 
 
     for i, feature in enumerate(features):
         geometry = feature["geometry"]
+
         if self.requested_data_type == "objecttype":
-            # import pydevd_pycharm
-            # pydevd_pycharm.settrace('192.168.68.54', port=3245, stdoutToServer=True, stderrToServer=True)
             properties = feature.get("properties", {}).get("properties", {})
             if isinstance(properties,dict) and properties.get("ObjectType"):
                 object_type = properties.get("ObjectType")
