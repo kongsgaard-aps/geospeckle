@@ -36,6 +36,9 @@ import sys
 from typing import Any, Dict, List, Optional, Tuple, Union
 import uuid
 
+from specklepy.objects import Base
+from specklepy.objects.geometry import Mesh
+
 from pygeoapi.provider.base import BaseProvider, ProviderItemNotFoundError
 from pygeoapi.util import crs_transform
 
@@ -435,9 +438,9 @@ class SpeckleProvider(BaseProvider):
         """Traverse Speckle commit and return geojson with features."""
 
         from specklepy.objects.geometry import Point, Line, Curve, Arc, Circle, Ellipse, Polyline, Polycurve, Mesh, Brep
-        from specklepy.objects.GIS.layers import VectorLayer
-        from specklepy.objects.GIS.geometry import GisPolygonElement
-        from specklepy.objects.GIS.GisFeature import GisFeature
+        # from specklepy.objects.GIS.layers import VectorLayer
+        # from specklepy.objects.GIS.geometry import GisPolygonElement
+        # from specklepy.objects.GIS.GisFeature import GisFeature
         from specklepy.objects.graph_traversal.traversal import (
             GraphTraversal,
             TraversalRule,
@@ -447,8 +450,7 @@ class SpeckleProvider(BaseProvider):
         from pygeoapi.provider.speckle_utils.display_utils import isDisplayable, set_default_color, \
             get_material_color_proxies
 
-        supported_classes = [GisFeature, GisPolygonElement, Mesh, Brep, Point, Line, Polyline, Curve, Arc, Circle,
-                             Ellipse, Polycurve]
+        supported_classes = [Mesh, Brep, Point, Line, Polyline, Curve, Arc, Circle, Ellipse, Polycurve]
         supported_types = [y().speckle_type for y in supported_classes]
         supported_types.extend([
             "Objects.Other.Revit.RevitInstance",
@@ -482,6 +484,9 @@ class SpeckleProvider(BaseProvider):
                             self.sourceApp is not None and "grasshopper" in self.sourceApp.lower() and x.speckle_type == "Base"))
             ],
         )
+
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('192.168.0.48', port=4567, stdoutToServer=True, stderrToServer=True)
 
         # for the context list, save the displayable objects and Layers (for getting CRS for now)
         context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if
@@ -525,3 +530,11 @@ class SpeckleProvider(BaseProvider):
         else:
             pythonExec += "/bin/python3"
         return pythonExec
+
+
+class GeometryNode(
+    Base, speckle_type="Objects.Core.Models.GeometryNode", detachable={"displayValue"}
+):
+    """Geometry Node"""
+
+    displayValue: Optional[List[Mesh]] = None

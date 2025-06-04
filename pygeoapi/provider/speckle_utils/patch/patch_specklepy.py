@@ -131,7 +131,7 @@ def patch_specklepy():
     #    return
     
     patch_credentials()
-    copy_gis_feature()
+    # copy_gis_feature()
     patch_transport()
     patch_serializer()
 

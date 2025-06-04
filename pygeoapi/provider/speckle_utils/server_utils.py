@@ -2,19 +2,25 @@ import os
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from specklepy.api.client import SpeckleClient
+from specklepy.api.wrapper import StreamWrapper
+
 import pygeoapi
+from pygeoapi.provider.speckle import SpeckleProvider
 
 
-def get_stream_branch(self: "SpeckleProvider", client: "SpeckleClient", wrapper: "StreamWrapper") -> Tuple:
+def get_stream_branch(self: SpeckleProvider, client: SpeckleClient, wrapper: StreamWrapper) -> Tuple:
     """Get stream and branch from the server."""
     
     from specklepy.logging.exceptions import SpeckleException
 
     branch = None
-    stream = client.stream.get(
+    stream = client.project.get(
         id = wrapper.stream_id, branch_limit=100
     )
-
+    # TODO - revert to specklepy 2.x
+    # TODO - patch gis objects and or geometrynodes
+    
     if isinstance(stream, Exception):
         raise SpeckleException(stream.message + ", "+ self.speckle_url)
 

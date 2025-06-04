@@ -15,7 +15,9 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
 
     print(f"Creating features..")
     time1 = datetime.now()
-
+    # TODO - fix creation of "byg" boxes
+    import pydevd_pycharm
+    pydevd_pycharm.settrace('192.168.0.48', port=4567, stdoutToServer=True, stderrToServer=True)
     all_props = []
     feature_count = 0
 
@@ -242,7 +244,7 @@ def create_features(self: "SpeckleProvider", context_list: List["TraversalContex
 
     all_coords = []
     all_coord_counts = []
-    context_list = [element for element in context_list if element.current.speckle_type != "Objects.Geometry.Mesh"]
+    #context_list = [element for element in context_list if element.current.speckle_type != "Objects.Geometry.Mesh"]
     initialize_features(self, all_coords, all_coord_counts, data, context_list, comments)
     all_features = data["features"] + data["comments"]
     reproject_bulk(self, all_coords, all_coord_counts, all_features)
