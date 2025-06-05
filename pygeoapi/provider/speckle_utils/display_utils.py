@@ -110,14 +110,14 @@ def isDisplayable(obj: "Base") -> bool:
     if obj.speckle_type.endswith("Feature"):
         return True
     
-    displayValue = None
+    display_value = None
     if hasattr(obj, 'displayValue'):
-        displayValue = getattr(obj, 'displayValue')
-    elif hasattr(obj, '@displayValue'):
-        displayValue = getattr(obj, '@displayValue')
+        display_value = getattr(obj, 'displayValue')
+    if hasattr(obj, '@displayValue') and display_value is None:
+        display_value = getattr(obj, '@displayValue')
     
     # merge to sigle object, if List
-    if isinstance(displayValue, List):
+    if isinstance(display_value, List):
         return True
     
     return False
@@ -130,26 +130,28 @@ def find_display_obj(obj) -> Tuple["Base", "Base"]:
     displayValForColor = obj
 
     # find displayValue if available
-    displayValue = obj
+    display_value = obj
     if hasattr(obj, 'displayValue'):
-        displayValue = getattr(obj, 'displayValue')
-    elif hasattr(obj, '@displayValue'):
-        displayValue = getattr(obj, '@displayValue')
+        display_value = getattr(obj, 'displayValue')
+
+    if hasattr(obj, '@displayValue') and display_value is None:
+        display_value = getattr(obj, '@displayValue')
+
     # merge to sigle object, if List
-    if isinstance(displayValue, List):
-        displayValue = get_single_display_object(displayValue)
+    if isinstance(display_value, List):
+        display_value = get_single_display_object(display_value)
     
     # read displayObj Colors directly from the obj itself, unless its GisFeature or Revit Element: then keep reading from displayValue
     if not obj.speckle_type.endswith("Feature") and "BuiltElements.Revit" not in obj.speckle_type:
         displayValForColor = obj
     else:
-        displayValForColor = displayValue
+        displayValForColor = display_value
 
     # return convertible types as is
     if is_convertible(obj):
         displayValObj = obj
     else:
-        displayValObj = displayValue
+        displayValObj = display_value
 
     return displayValObj, displayValForColor
 

@@ -396,7 +396,7 @@ class SpeckleProvider(BaseProvider):
         self.sourceApp = commit.sourceApplication
 
         transport = ServerTransport(client=client, account=client.account, stream_id=wrapper.stream_id)
-        if transport == None:
+        if transport is None:
             raise SpeckleException("Transport not found")
 
         # receive commit
@@ -438,9 +438,9 @@ class SpeckleProvider(BaseProvider):
         """Traverse Speckle commit and return geojson with features."""
 
         from specklepy.objects.geometry import Point, Line, Curve, Arc, Circle, Ellipse, Polyline, Polycurve, Mesh, Brep
-        # from specklepy.objects.GIS.layers import VectorLayer
-        # from specklepy.objects.GIS.geometry import GisPolygonElement
-        # from specklepy.objects.GIS.GisFeature import GisFeature
+        from specklepy.objects.GIS.layers import VectorLayer
+        from specklepy.objects.GIS.geometry import GisPolygonElement
+        from specklepy.objects.GIS.GisFeature import GisFeature
         from specklepy.objects.graph_traversal.traversal import (
             GraphTraversal,
             TraversalRule,
@@ -485,9 +485,6 @@ class SpeckleProvider(BaseProvider):
             ],
         )
 
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('192.168.0.48', port=4567, stdoutToServer=True, stderrToServer=True)
-
         # for the context list, save the displayable objects and Layers (for getting CRS for now)
         context_list = [x for x in GraphTraversal([rule]).traverse(commit_obj) if
                         isDisplayable(x.current) or x.current.speckle_type.endswith("VectorLayer")]
@@ -501,11 +498,6 @@ class SpeckleProvider(BaseProvider):
 
         # sort features by height 
 
-        # if len(data['features']) == len(data['heights']):
-        # feat_array = np.array(data['features'])
-        # heights_array = np.array(data['heights'])
-        # inds = heights_array.argsort()
-        # sorted = feat_array[inds].tolist()
         time1 = datetime.now()
         sorted_list = sorted(data['features'], key=lambda d: d['max_height'])
         for i, _ in enumerate(sorted_list):
@@ -531,10 +523,3 @@ class SpeckleProvider(BaseProvider):
             pythonExec += "/bin/python3"
         return pythonExec
 
-
-class GeometryNode(
-    Base, speckle_type="Objects.Core.Models.GeometryNode", detachable={"displayValue"}
-):
-    """Geometry Node"""
-
-    displayValue: Optional[List[Mesh]] = None

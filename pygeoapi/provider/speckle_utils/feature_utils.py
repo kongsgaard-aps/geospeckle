@@ -15,9 +15,7 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
 
     print(f"Creating features..")
     time1 = datetime.now()
-    # TODO - fix creation of "byg" boxes
-    import pydevd_pycharm
-    pydevd_pycharm.settrace('192.168.0.48', port=4567, stdoutToServer=True, stderrToServer=True)
+
     all_props = []
     feature_count = 0
 
@@ -84,11 +82,11 @@ def initialize_features(self: "SpeckleProvider", all_coords, all_coord_counts, d
                     feature["max_height"] = max([c[2] for c in coords])
                     feature["bbox"] = get_feature_bbox(coords)
 
-                    print(f"Adding feature: {feature}")
                     if self.url_params.get("exclude_missing_cci") is True:
                         if feature.get("properties", {}).get("properties", {}).get("CCI"):
                             data["features"].append(feature)
                             feature_count += 1
+                            print(f"Adding feature: {feature}")
                     else:
                         data["features"].append(feature)
                         feature_count += 1
@@ -244,7 +242,7 @@ def create_features(self: "SpeckleProvider", context_list: List["TraversalContex
 
     all_coords = []
     all_coord_counts = []
-    #context_list = [element for element in context_list if element.current.speckle_type != "Objects.Geometry.Mesh"]
+    context_list = [element for element in context_list if element.current.speckle_type != "Objects.Geometry.Mesh"]
     initialize_features(self, all_coords, all_coord_counts, data, context_list, comments)
     all_features = data["features"] + data["comments"]
     reproject_bulk(self, all_coords, all_coord_counts, all_features)
