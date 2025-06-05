@@ -134,10 +134,10 @@ def find_display_obj(obj) -> Tuple["Base", "Base"]:
     if hasattr(obj, 'displayValue'):
         display_value = getattr(obj, 'displayValue')
 
-    if hasattr(obj, '@displayValue') and display_value is None:
+    if hasattr(obj, '@displayValue') and (display_value is None or display_value is obj):
         display_value = getattr(obj, '@displayValue')
 
-    # merge to sigle object, if List
+    # merge to single object, if List
     if isinstance(display_value, List):
         display_value = get_single_display_object(display_value)
     
