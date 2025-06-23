@@ -371,7 +371,8 @@ class SpeckleProvider(BaseProvider):
         wrapper.model_id = \
         self.speckle_url.split("models/")[1].split(" ")[0].split("/")[0].split("&")[0].split(",")[0].split(";")[
             0].split("@")[0]
-
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('172.16.154.241', port=4567, stdoutToServer=True, stderrToServer=True)
         # get stream and branch data
         client = get_client(wrapper, url_proj)
         stream, branch = get_stream_branch(self, client, wrapper)
