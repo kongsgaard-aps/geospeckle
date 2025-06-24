@@ -50,6 +50,7 @@ def get_gis_feature_path_src():
 def get_gis_feature_path_dst():
     specklepy_path = get_specklepy_path()
     credentials_path = Path(specklepy_path, "objects", "GIS", "GisFeature.py")
+    credentials_path.parent.mkdir(parents=True, exist_ok=True)
 
     return str(credentials_path)
 

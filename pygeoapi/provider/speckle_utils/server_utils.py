@@ -9,25 +9,24 @@ import pygeoapi
 from pygeoapi.provider.speckle import SpeckleProvider
 
 
-def get_stream_branch(self: SpeckleProvider, client: SpeckleClient, wrapper: StreamWrapper) -> Tuple:
-    """Get stream and branch from the server."""
-    
+def get_project_model(self: SpeckleProvider, client: SpeckleClient, wrapper: StreamWrapper) -> Tuple:
+    """Get project and model from the server."""
+
     from specklepy.logging.exceptions import SpeckleException
 
-    branch = None
-    stream = client.stream.get(
-        id = wrapper.stream_id, branch_limit=100
-    )
+    model = None
+    project = client.project.get_with_models(wrapper.stream_id)
 
-    if isinstance(stream, Exception):
-        raise SpeckleException(stream.message + ", "+ self.speckle_url)
+    if isinstance(project, Exception):
+        raise SpeckleException(str(project) + ", " + self.speckle_url)
 
-    for br in stream.branches.items:
+    for br in project.models.items:
         if br.id == wrapper.model_id:
-            branch = br
+            model = br
             break
-    return stream, branch
-    
+    return project, model
+
+
 def get_client(wrapper: "StreamWrapper", url_proj: str) -> "SpeckleClient":
     """Get unauthenticated SpeckleClient."""
 
@@ -120,15 +119,15 @@ def get_comments(client: "SpeckleClient", project_id: str, model_id: str):
         # unpack object
         comm_id, position, author_name, created_date, raw_text, attachments_paths, res_id = comment_data
         threads_objs[comm_id] = {
-            "position": position, 
+            "position": position,
             "items": [{
                 "author": author_name,
                 "date": created_date,
                 "text": raw_text,
                 "attachments": attachments_paths,
                 "resource_id": res_id,
-                }]
-            }
+            }]
+        }
         replies = thread["replies"]["items"]
         for reply in replies:
             reply_data = get_info_from_comment(reply, project_id, model_id)
@@ -137,20 +136,21 @@ def get_comments(client: "SpeckleClient", project_id: str, model_id: str):
 
             # unpack reply 
             _, position, author_name_reply, created_date_reply, raw_text_reply, attachments_paths_reply, _ = reply_data
-        
+
             threads_objs[comm_id]["items"].append(
                 {
-                "author": author_name_reply,
-                "date": created_date_reply,
-                "text": raw_text_reply,
-                "attachments": attachments_paths_reply,
+                    "author": author_name_reply,
+                    "date": created_date_reply,
+                    "text": raw_text_reply,
+                    "attachments": attachments_paths_reply,
                 }
             )
-    
+
     return threads_objs
 
 
-def get_info_from_comment(comment: Dict, project_id: str, model_id: str) -> Tuple [str, List[float], str, str, str, List[str]]:
+def get_info_from_comment(comment: Dict, project_id: str, model_id: str) -> Tuple[
+    str, List[float], str, str, str, List[str]]:
     """Get displayable data from commit."""
 
     comm_id = comment["id"]
@@ -169,10 +169,10 @@ def get_info_from_comment(comment: Dict, project_id: str, model_id: str) -> Tupl
             # wrong model, don't include
             model_found = 0
     '''
-    position = [0,0,0]
+    position = [0, 0, 0]
     res_id = model_id
     viewer_state = comment["viewerState"]
-    if viewer_state is not None: # can be None for Replies
+    if viewer_state is not None:  # can be None for Replies
         position: List[float] = viewer_state["ui"]["selection"]
         try:
             res_id = viewer_state["resources"]["request"]["resourceIdString"]
@@ -186,14 +186,14 @@ def get_info_from_comment(comment: Dict, project_id: str, model_id: str) -> Tupl
             file_path = get_attachment(project_id, attach["id"], attach["fileName"])
             attachments_paths.append(file_path)
         except:
-            pass # attachment was not queried successfully
+            pass  # attachment was not queried successfully
 
-    #if model_found is False:
+    # if model_found is False:
     #    return None
     return comm_id, position, author_name, created_date, raw_text, attachments_paths, res_id
 
-def get_attachment(project_id: str, attachment_id: str, attachment_name: str) -> Path:
 
+def get_attachment(project_id: str, attachment_id: str, attachment_name: str) -> Path:
     import requests
     import shutil
 
@@ -204,13 +204,13 @@ def get_attachment(project_id: str, attachment_id: str, attachment_name: str) ->
     file_path = str(file_path_obj)
     print(file_path)
 
-    if os.path.isfile(file_path) is True: # if already saved
+    if os.path.isfile(file_path) is True:  # if already saved
         return file_path
-    
+
     url = f"https://speckle.xyz/api/stream/{project_id}/blob/{attachment_id}"
     headers = {"User-Agent": "Speckle Pygeoapi"}
     r = requests.get(url, headers=headers, stream=True)
-    
+
     if r.status_code == 200:
         with open(file_path, "wb") as f:
             r.raw.decode_content = True
@@ -220,6 +220,7 @@ def get_attachment(project_id: str, attachment_id: str, attachment_name: str) ->
         raise Exception(
             f"Request not successful: Response code {r.status_code}"
         )
+
 
 def set_actions(self: "SpeckleProvider", client: "SpeckleClient", action: str = "GEO receive"):
     from specklepy.logging.metrics import track

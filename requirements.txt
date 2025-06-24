@@ -18,5 +18,5 @@ shapely
 SQLAlchemy<2.0.0
 tinydb
 unicodecsv
-specklepy==2.19.6
+specklepy==3.0.1
 pydevd-pycharm~=251.25410.159

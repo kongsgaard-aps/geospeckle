@@ -217,7 +217,7 @@ class SpeckleProvider(BaseProvider):
                 if all([str(f["properties"][p[0]]) == str(p[1]) for p in properties])
             ]  # noqa
 
-        # All features must have ids, TODO must be unique strings
+        # All features must have ids
         if isinstance(self.speckle_data, str):
             raise Exception(self.speckle_data)
         for i in self.speckle_data["features"]:
@@ -350,7 +350,7 @@ class SpeckleProvider(BaseProvider):
         """Receive and process Speckle data, return geojson."""
 
         from datetime import datetime, timezone
-        from pygeoapi.provider.speckle_utils.server_utils import get_stream_branch, get_client, get_comments, \
+        from pygeoapi.provider.speckle_utils.server_utils import get_project_model, get_client, get_comments, \
             set_actions
 
         from specklepy.objects.base import Base
@@ -372,14 +372,14 @@ class SpeckleProvider(BaseProvider):
         self.speckle_url.split("models/")[1].split(" ")[0].split("/")[0].split("&")[0].split(",")[0].split(";")[
             0].split("@")[0]
         import pydevd_pycharm
-        pydevd_pycharm.settrace('172.16.154.241', port=4567, stdoutToServer=True, stderrToServer=True)
+        pydevd_pycharm.settrace('192.168.68.61', port=4567, stdoutToServer=True, stderrToServer=True)
         # get stream and branch data
         client = get_client(wrapper, url_proj)
-        stream, branch = get_stream_branch(self, client, wrapper)
-        if stream is None:
+        project, model = get_project_model(self, client, wrapper)
+        if project is None:
             raise ValueError(f"Project from URL '{url_proj}' not found")
-        if branch is None:
-            raise ValueError(f"Model '{wrapper.model_id}' of the project '{stream['name']}' not found")
+        if model is None:
+            raise ValueError(f"Model '{wrapper.model_id}' of the project '{project['name']}' not found")
 
         if self.requested_data_type == "projectcomments":
             comments = get_comments(client, wrapper.stream_id, wrapper.model_id)
@@ -389,12 +389,12 @@ class SpeckleProvider(BaseProvider):
 
         # set the Model name
         self.project_id = wrapper.stream_id
-        self.project_name = stream.name
-        self.model_name = branch.name
+        self.project_name = project.name
+        self.model_name = model.name
 
-        commit = branch.commits.items[0]
-        objId = commit.referencedObject
-        self.sourceApp = commit.sourceApplication
+        version = client.model.get_with_versions(model.id, project.id).versions.items[0]
+        obj_id = version.referenced_object
+        self.sourceApp = version.source_application
 
         transport = ServerTransport(client=client, account=client.account, stream_id=wrapper.stream_id)
         if transport is None:
@@ -403,20 +403,20 @@ class SpeckleProvider(BaseProvider):
         # receive commit
         set_actions(self, client)
         try:
-            commit_obj = operations.receive(objId, transport, None)
+            commit_obj = operations.receive(obj_id, transport, None)
         except Exception as ex:
             # e.g. SpeckleException: Can't get object b53a53697a/f8ce82b242e05eeaab4c6c59fb25e4a0: HTTP error 404 ()
             raise ex
 
         client.commit.received(
             wrapper.stream_id,
-            commit.id,
+            version.id,
             source_application="pygeoapi",
             message="Received commit in pygeoapi",
         )
 
         print(
-            f"_{datetime.now().astimezone(timezone.utc)} _Rendering model '{branch.name}' of the project '{stream.name}'")
+            f"_{datetime.now().astimezone(timezone.utc)} _Rendering model '{model.name}' of the project '{project.name}'")
         speckle_data = self.traverse_data(commit_obj, comments)
 
         set_actions(self, client, "GEO post-receive")
@@ -425,9 +425,9 @@ class SpeckleProvider(BaseProvider):
         speckle_data["comments"] = []
 
         speckle_data["project_id"] = wrapper.stream_id
-        speckle_data["project"] = stream.name
-        speckle_data["model"] = branch.name
-        speckle_data["model_last_version_date"] = commit.createdAt
+        speckle_data["project"] = project.name
+        speckle_data["model"] = model.name
+        speckle_data["model_last_version_date"] = version.createdAt
         speckle_data["model_id"] = wrapper.model_id
         speckle_data["extent"] = self.extent
         speckle_data["extent3d"] = self.extent3d
