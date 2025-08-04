@@ -371,8 +371,7 @@ class SpeckleProvider(BaseProvider):
         wrapper.model_id = \
         self.speckle_url.split("models/")[1].split(" ")[0].split("/")[0].split("&")[0].split(",")[0].split(";")[
             0].split("@")[0]
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('192.168.68.61', port=4567, stdoutToServer=True, stderrToServer=True)
+
         # get stream and branch data
         client = get_client(wrapper, url_proj)
         project, model = get_project_model(self, client, wrapper)
@@ -400,8 +399,11 @@ class SpeckleProvider(BaseProvider):
         if transport is None:
             raise SpeckleException("Transport not found")
 
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('10.20.0.1', port=4567, stdoutToServer=True, stderrToServer=True)
+
         # receive commit
-        set_actions(self, client)
+        # set_actions(self, client)
         try:
             commit_obj = operations.receive(obj_id, transport, None)
         except Exception as ex:
